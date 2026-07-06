@@ -22,12 +22,12 @@ from telegram.ext import (
 )
 
 # ============================================
-# LOGGING - SET TO DEBUG FOR MORE INFO
+# LOGGING
 # ============================================
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.DEBUG,  # Changed to DEBUG for more info
+    level=logging.INFO,
     handlers=[
         logging.StreamHandler(sys.stdout)
     ]
@@ -43,7 +43,7 @@ if not TOKEN:
     logger.error("❌ TELEGRAM_TOKEN environment variable is not set!")
     sys.exit(1)
 
-logger.info(f"✅ Token loaded: {TOKEN[:10]}... (hidden for security)")
+logger.info(f"✅ Token loaded successfully")
 
 API_URL = "https://api.exchangerate-api.com/v4/latest/"
 SUPPORTED_CURRENCIES = [
@@ -84,13 +84,11 @@ def parse_conversion(text: str) -> Optional[Tuple[float, str, str]]:
 def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
     """Fetch exchange rate from API."""
     try:
-        logger.debug(f"Fetching rate for {from_currency} to {to_currency}")
         response = requests.get(f"{API_URL}{from_currency}", timeout=10)
         response.raise_for_status()
         data = response.json()
         
         if to_currency not in data.get("rates", {}):
-            logger.error(f"Currency {to_currency} not found in rates")
             return None
             
         return {
@@ -98,14 +96,8 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
             "date": data.get("date", "N/A"),
             "base": from_currency,
         }
-    except requests.exceptions.Timeout:
-        logger.error("API request timed out")
-        return None
-    except requests.exceptions.RequestException as e:
-        logger.error(f"API request failed: {e}")
-        return None
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.error(f"API error: {e}")
         return None
 
 def format_conversion_result(amount: float, from_curr: str, to_curr: str, rate: float, date: str) -> str:
@@ -138,7 +130,6 @@ def create_keyboard(buttons: list, columns: int = 2) -> InlineKeyboardMarkup:
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /start command."""
-    logger.info(f"Start command received from user {update.effective_user.id}")
     user = update.effective_user
     welcome = (
         f"👋 Welcome *{user.first_name}* to Currency3 Converter!\n\n"
@@ -164,15 +155,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     ]
     keyboard = create_keyboard(buttons, columns=2)
     
-    try:
-        await update.message.reply_text(welcome, reply_markup=keyboard, parse_mode="Markdown")
-        logger.info("✅ Start message sent successfully")
-    except Exception as e:
-        logger.error(f"❌ Failed to send start message: {e}")
+    await update.message.reply_text(welcome, reply_markup=keyboard, parse_mode="Markdown")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /help command."""
-    logger.info(f"Help command from user {update.effective_user.id}")
     help_text = (
         "📖 *Currency3 Converter - Help*\n\n"
         "*Supported Formats:*\n"
@@ -195,7 +181,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def rates_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /rates command."""
-    logger.info(f"Rates command from user {update.effective_user.id}")
     currencies = " • ".join(SUPPORTED_CURRENCIES)
     text = (
         f"📊 *Supported Currencies*\n\n"
@@ -244,7 +229,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     query = update.callback_query
     await query.answer()
     data = query.data
-    logger.debug(f"Callback received: {data}")
     
     if data == "quick_convert":
         buttons = [
@@ -355,7 +339,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle text messages for currency conversion."""
     text = update.message.text.strip()
-    logger.info(f"Message received: {text}")
     
     if text.startswith("/"):
         return
@@ -402,15 +385,12 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Log errors and notify user."""
     logger.error(f"Update {update} caused error: {context.error}")
     if update and update.effective_message:
-        try:
-            await update.effective_message.reply_text(
-                "⚠️ An error occurred. Please try again later."
-            )
-        except Exception as e:
-            logger.error(f"Failed to send error message: {e}")
+        await update.effective_message.reply_text(
+            "⚠️ An error occurred. Please try again later."
+        )
 
 # ============================================
-# MAIN APPLICATION - WITH DEBUGGING
+# MAIN APPLICATION
 # ============================================
 
 def main():
@@ -419,26 +399,12 @@ def main():
     logger.info("🚀 Starting Currency3 Converter Bot...")
     logger.info("=" * 50)
     
-    # Log environment info
-    logger.info(f"🐍 Python version: {sys.version}")
-    logger.info(f"📁 Current directory: {os.getcwd()}")
-    logger.info(f"📂 Files in directory: {os.listdir('.')}")
-    
-    # Check token
-    if not TOKEN:
-        logger.error("❌ TELEGRAM_TOKEN environment variable is not set!")
-        sys.exit(1)
-    
-    logger.info(f"✅ Token found: {TOKEN[:10]}... (first 10 chars)")
-    
     try:
         # Create the Application
-        logger.info("🔨 Building Application...")
         application = Application.builder().token(TOKEN).build()
         logger.info("✅ Application built successfully")
         
         # Add command handlers
-        logger.info("📝 Registering handlers...")
         application.add_handler(CommandHandler("start", start_command))
         application.add_handler(CommandHandler("help", help_command))
         application.add_handler(CommandHandler("rates", rates_command))
@@ -456,25 +422,19 @@ def main():
         logger.info("✅ Handlers registered successfully")
         
         # Start the bot with polling
-        logger.info("🔄 Starting polling (this is where it waits for messages)...")
-        logger.info("💡 The bot is now listening for messages on Telegram")
+        logger.info("🔄 Starting polling...")
+        logger.info("💡 Bot is now listening for messages!")
         logger.info("=" * 50)
         
-        # Run polling - this will block and keep the bot running
         application.run_polling(
             allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True,
-            poll_interval=1.0,  # Check for updates every second
-            timeout=60  # Long polling timeout
+            drop_pending_updates=True
         )
         
     except Exception as e:
         logger.error(f"❌ Failed to start bot: {e}")
         import traceback
         traceback.print_exc()
-        
-        # Keep the process alive for Railway to show the error
-        logger.info("⏳ Keeping process alive for 1 hour to show logs...")
         time.sleep(3600)
 
 if __name__ == "__main__":
