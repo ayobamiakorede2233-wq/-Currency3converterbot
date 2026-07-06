@@ -1,13 +1,12 @@
 """
-Currency3 Converter Bot - A Telegram bot for real-time currency conversion
-Deployed on Railway with GitHub integration
+Currency3 Converter Bot - Telegram Bot for Real-time Currency Conversion
+Deployed on Railway with GitHub Integration
 """
 
 import os
 import re
 import logging
 from typing import Dict, Optional, Tuple
-from datetime import datetime
 
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -56,10 +55,7 @@ logger = logging.getLogger(__name__)
 # ============================================
 
 def parse_conversion(text: str) -> Optional[Tuple[float, str, str]]:
-    """
-    Parse user input for currency conversion.
-    Returns: (amount, from_currency, to_currency) or None if invalid
-    """
+    """Parse user input for currency conversion."""
     patterns = [
         r"^(?:convert\s+)?([\d.]+)\s+([A-Z]{3})\s+(?:to\s+)?([A-Z]{3})$",
         r"^(?:convert\s+)?([\d.]+)\s+([A-Z]{3})\s+in\s+([A-Z]{3})$",
@@ -78,10 +74,7 @@ def parse_conversion(text: str) -> Optional[Tuple[float, str, str]]:
     return None
 
 def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
-    """
-    Fetch exchange rate from API
-    Returns: dict with rate and date, or None if error
-    """
+    """Fetch exchange rate from API."""
     try:
         response = requests.get(f"{API_URL}{from_currency}", timeout=10)
         response.raise_for_status()
@@ -106,7 +99,7 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
         return None
 
 def format_conversion_result(amount: float, from_curr: str, to_curr: str, rate: float, date: str) -> str:
-    """Format the conversion result message"""
+    """Format the conversion result message."""
     converted = amount * rate
     return (
         f"💱 *Conversion Result*\n\n"
@@ -117,7 +110,7 @@ def format_conversion_result(amount: float, from_curr: str, to_curr: str, rate: 
     )
 
 def create_keyboard(buttons: list, columns: int = 2) -> InlineKeyboardMarkup:
-    """Create a grid keyboard from button list"""
+    """Create a grid keyboard from button list."""
     keyboard = []
     row = []
     for i, (text, callback) in enumerate(buttons):
@@ -134,7 +127,7 @@ def create_keyboard(buttons: list, columns: int = 2) -> InlineKeyboardMarkup:
 # ============================================
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /start command"""
+    """Handle /start command."""
     user = update.effective_user
     welcome = (
         f"👋 Welcome *{user.first_name}* to Currency3 Converter!\n\n"
@@ -163,7 +156,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(welcome, reply_markup=keyboard, parse_mode="Markdown")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /help command"""
+    """Handle /help command."""
     help_text = (
         "📖 *Currency3 Converter - Help*\n\n"
         "*Supported Formats:*\n"
@@ -185,8 +178,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(help_text, parse_mode="Markdown")
 
 async def rates_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /rates command"""
-    # Show currencies in a grid format
+    """Handle /rates command."""
     currencies = " • ".join(SUPPORTED_CURRENCIES)
     text = (
         f"📊 *Supported Currencies*\n\n"
@@ -197,12 +189,11 @@ async def rates_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(text, parse_mode="Markdown")
 
 async def convert_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /convert command - Show popular pairs"""
+    """Handle /convert command."""
     buttons = [
         (f"{base}→{target}", f"pair_{base}_{target}")
         for base, target in POPULAR_PAIRS
     ]
-    # Add custom option
     buttons.append(("✏️ Custom", "custom_convert"))
     
     keyboard = create_keyboard(buttons, columns=2)
@@ -215,7 +206,7 @@ async def convert_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
 
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /about command"""
+    """Handle /about command."""
     about_text = (
         "ℹ️ *About Currency3 Converter*\n\n"
         "🤖 Version: 1.0.0\n"
@@ -223,8 +214,7 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         "🔧 Built with: Python + python-telegram-bot\n"
         "🚀 Hosted on: Railway\n"
         "📊 API: ExchangeRate-API.com\n\n"
-        "👨‍💻 Open Source - Deploy your own!\n"
-        "📦 GitHub: [Your Repository Link]"
+        "👨‍💻 Open Source - Deploy your own!"
     )
     await update.message.reply_text(about_text, parse_mode="Markdown")
 
@@ -233,7 +223,7 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 # ============================================
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle all callback queries from inline keyboards"""
+    """Handle all callback queries from inline keyboards."""
     query = update.callback_query
     await query.answer()
     data = query.data
@@ -254,10 +244,9 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     elif data == "view_rates":
         await query.edit_message_text("📊 *Fetching latest rates...*", parse_mode="Markdown")
         
+        # Get rates for USD base
         result = get_exchange_rate("USD", "EUR")
         if result:
-            rates_data = result["rate"]
-            # Show top 10 rates
             top = ["EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "INR", "NGN", "PKR"]
             text = "📊 *Exchange Rates (Base: USD)*\n\n"
             
@@ -347,10 +336,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 # ============================================
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle text messages for currency conversion"""
+    """Handle text messages for currency conversion."""
     text = update.message.text.strip()
     
-    # Skip if it's a command
+    # Skip commands
     if text.startswith("/"):
         return
     
@@ -396,7 +385,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 # ============================================
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Log errors and notify user"""
+    """Log errors and notify user."""
     logger.error(f"Update {update} caused error: {context.error}")
     if update and update.effective_message:
         await update.effective_message.reply_text(
@@ -404,35 +393,51 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
 
 # ============================================
-# MAIN APPLICATION
+# MAIN APPLICATION - FIXED FOR RAILWAY
 # ============================================
 
-def main() -> None:
-    """Start the bot"""
+def main():
+    """Start the bot with proper error handling for Railway."""
     logger.info("🚀 Starting Currency3 Converter Bot...")
+    logger.info(f"🤖 Bot token: {'*' * 10} (hidden for security)")
     
-    # Create application
-    application = Application.builder().token(TOKEN).build()
-    
-    # Add command handlers
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("rates", rates_command))
-    application.add_handler(CommandHandler("convert", convert_command))
-    application.add_handler(CommandHandler("about", about_command))
-    
-    # Add callback and message handlers
-    application.add_handler(CallbackQueryHandler(handle_callback))
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
-    )
-    
-    # Add error handler
-    application.add_error_handler(error_handler)
-    
-    # Start polling (works on Railway)
-    logger.info("✅ Bot is running and listening for messages...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    try:
+        # Create the Application
+        application = Application.builder().token(TOKEN).build()
+        logger.info("✅ Application built successfully")
+        
+        # Add command handlers
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("rates", rates_command))
+        application.add_handler(CommandHandler("convert", convert_command))
+        application.add_handler(CommandHandler("about", about_command))
+        
+        # Add callback and message handlers
+        application.add_handler(CallbackQueryHandler(handle_callback))
+        application.add_handler(
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+        )
+        
+        # Add error handler
+        application.add_error_handler(error_handler)
+        logger.info("✅ Handlers registered successfully")
+        
+        # Start the bot with polling
+        logger.info("🔄 Starting polling...")
+        application.run_polling(
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=True,
+            stop_signals=None  # Important for Railway
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to start bot: {e}")
+        import traceback
+        traceback.print_exc()
+        # Keep the process alive for Railway to show the error
+        import time
+        time.sleep(3600)  # Sleep for 1 hour to keep logs visible
 
 if __name__ == "__main__":
     main()
