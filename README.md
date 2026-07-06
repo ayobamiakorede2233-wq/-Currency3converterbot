@@ -1,41 +1,29 @@
 # 💰 Currency3 Converter Bot
 
-A Telegram bot for real-time currency conversion, deployed on Railway.
+A Telegram bot for real-time currency conversion.
 
-## ✨ Features
+## Features
+- 30+ supported currencies
+- Real-time exchange rates
+- Quick conversion buttons
+- Interactive keyboard navigation
 
-- 🔄 Real-time exchange rates
-- 🌍 30+ supported currencies
-- ⚡ Quick conversion buttons
-- 📊 View exchange rates
-- 🔄 Reverse conversion
-- 📱 User-friendly interface
+## Commands
+- `/start` - Main menu
+- `/help` - Help guide
+- `/rates` - List all currencies
+- `/convert` - Start conversion
+- `/about` - Bot information
 
-## 🚀 Quick Start
+## Deployment
+1. Clone this repository
+2. Deploy on Railway
+3. Add `TELEGRAM_TOKEN` environment variable
 
-### 1. Create Telegram Bot
-1. Message [@BotFather](https://t.me/botfather) on Telegram
-2. Send `/newbot`
-3. Choose name: `Currency3 Converter`
-4. Choose username: `@Currency3converterbot`
-5. Save your API token
+## Environment Variables
+- `TELEGRAM_TOKEN` - Your bot token from @BotFather
 
-### 2. Deploy on Railway
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/currency3-bot)
-
-Or manually:
-
-1. Fork this repository to GitHub
-2. Go to [Railway.app](https://railway.app)
-3. Click "New Project" → "Deploy from GitHub repo"
-4. Select your repository
-5. Add environment variable:
-   - Key: `TELEGRAM_TOKEN`
-   - Value: `your_bot_token_here`
-6. Deploy!
-
-### 3. Test Your Bot
-Open Telegram and send `/start` to your bot.
-
-## 📝 Usage Examples
+## Tech Stack
+- Python 3.11
+- python-telegram-bot 20.6
+- ExchangeRate-API.com
